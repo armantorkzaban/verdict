@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run core verdict unit & seeded-defect tests
+        run: python3 -I tests/test_verdict.py -v
+      - name: Run academic search & campus full-text tests
+        run: python3 -I tests/test_literature.py -v
+      - name: Smoke-test bundled demo check & report
+        run: |
+          ./skills/verdict/scripts/verdict --version
+          ./skills/verdict/scripts/verdict check --task examples/query-cache-demo/task.json --as-of 2026-10-10

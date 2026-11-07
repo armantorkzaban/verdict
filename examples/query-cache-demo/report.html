@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CacheLine (Demo) — Verdict Ledger &amp; Trajectory</title>
+<style>
+:root {
+  --bg:#F5F5F1; --bg-2:#ECECE6; --bg-3:#E1E1D9;
+  --fg:#14171B; --fg-dim:#454B54; --micro:#5C636D;
+  --amp:#A44A00; --amp-wash:rgba(164,74,0,.10);
+  --off:#0D6B62; --off-wash:rgba(13,107,98,.11);
+  --stop:#8F2D2D; --stop-wash:rgba(143,45,45,.11);
+  --rule:rgba(20,23,27,.15); --rule-soft:rgba(20,23,27,.07);
+  --f-serif:"Source Serif 4",Charter,"Iowan Old Style",Georgia,serif;
+  --f-sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark) {
+  :root {
+    --bg:#0F1215; --bg-2:#161A1F; --bg-3:#1E242A;
+    --fg:#E7EAED; --fg-dim:#A7AEB7; --micro:#8A929D;
+    --amp:#F2A050; --amp-wash:rgba(242,160,80,.13);
+    --off:#5FC6B8; --off-wash:rgba(95,198,184,.13);
+    --stop:#E87C7C; --stop-wash:rgba(232,124,124,.14);
+    --rule:rgba(231,234,237,.14); --rule-soft:rgba(231,234,237,.07);
+  }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font-family:var(--f-sans); font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased; }
+.wrap { max-width:1160px; margin:0 auto; padding:32px clamp(16px,4vw,40px) 72px; }
+.mono { font-family:var(--f-mono); } .dim { color:var(--fg-dim); } .micro { font-size:12px; color:var(--micro); }
+h1,h2,h3 { font-family:var(--f-serif); font-weight:600; margin:0; }
+h1 { font-size:clamp(28px,4.2vw,44px); letter-spacing:-.02em; margin-top:6px; }
+h2 { font-size:22px; margin:38px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--rule); }
+h3 { font-size:16.5px; margin:0 0 8px; }
+.kicker { font-family:var(--f-mono); font-size:12px; color:var(--micro); text-transform:uppercase; letter-spacing:.05em; }
+.facts { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); margin:24px 0 18px; }
+.fact { background:var(--bg); padding:14px 16px; }
+.fact .k { font-family:var(--f-mono); font-size:11.5px; color:var(--micro); }
+.fact .v { font-family:var(--f-serif); font-size:26px; font-weight:600; margin-top:2px; }
+.fact .s { font-size:12.5px; color:var(--fg-dim); margin-top:2px; }
+.ladder-box { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:24px; align-items:center; background:var(--bg-2); border:1px solid var(--rule); padding:18px 20px; border-radius:3px; }
+@media (max-width:820px) { .ladder-box, .two-col { grid-template-columns:1fr; } }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13.8px; }
+th, td { text-align:left; vertical-align:top; padding:10px 12px; border-bottom:1px solid var(--rule-soft); }
+th { font-family:var(--f-mono); font-size:12px; font-weight:500; color:var(--micro); border-bottom:1px solid var(--rule); background:var(--bg-2); }
+.q-lbl { font-weight:600; white-space:nowrap; }
+.pill { display:inline-block; font-family:var(--f-mono); font-size:11.5px; font-weight:500; padding:2px 7px; border-radius:2px; border:1px solid transparent; }
+.pill-go { background:var(--off-wash); color:var(--off); border-color:color-mix(in srgb,var(--off) 35%,transparent); }
+.pill-conditions, .pill-hold, .pill-pivot { background:var(--amp-wash); color:var(--amp); border-color:color-mix(in srgb,var(--amp) 35%,transparent); }
+.pill-stop { background:var(--stop-wash); color:var(--stop); border-color:color-mix(in srgb,var(--stop) 35%,transparent); }
+.ev { display:inline-block; font-family:var(--f-mono); font-size:11px; color:var(--fg-dim); background:var(--bg-3); padding:1px 6px; border-radius:2px; margin-left:3px; }
+.cell-note { font-size:12.6px; color:var(--fg-dim); margin-top:5px; line-height:1.45; }
+.s-top { display:flex; justify-content:space-between; gap:8px; align-items:baseline; font-weight:500; }
+.bar-track { height:4px; background:var(--bg-3); border-radius:2px; margin-top:5px; overflow:hidden; }
+.bar-fill { height:100%; } .bar-hi { background:var(--off); } .bar-mid { background:var(--amp); } .bar-lo { background:var(--stop); }
+ul, ol { margin:6px 0 0; padding-left:20px; } li { margin-bottom:6px; font-size:13.8px; }
+.tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.tab-btn { font-family:var(--f-mono); font-size:12.5px; padding:6px 12px; cursor:pointer; background:var(--bg-2); color:var(--fg-dim); border:1px solid var(--rule); border-radius:2px; }
+.tab-btn.active { background:var(--fg); color:var(--bg); border-color:var(--fg); }
+.tab-panel { display:none; background:var(--bg-2); border:1px solid var(--rule); padding:20px; border-radius:3px; }
+.tab-panel.active { display:block; }
+.preamble { font-size:14px; color:var(--fg-dim); margin:0 0 16px; padding-bottom:12px; border-bottom:1px solid var(--rule-soft); }
+.callout { margin-top:16px; padding:12px 14px; background:var(--bg); border-left:3px solid var(--amp); font-size:13.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Verdict Report · as of 2026-10-10 · 2 recorded run(s)</div>
+  <h1>CacheLine (Demo)</h1>
+  <p class="dim" style="max-width:74ch;margin-top:8px">Adaptive read-through query cache for multi-tenant Postgres fleets, evaluated against PgBouncer and tuned Redis.</p>
+  <div class="facts">
+    <div class="fact"><div class="k">Strongest evidence</div><div class="v" style="color:var(--off)">E2</div><div class="s">Causal floor: E3 (below E3: predicted only)</div></div>
+    <div class="fact"><div class="k">Outside human review</div><div class="v" style="color:var(--amp)">0 claims</div><div class="s">All claims self-assessed / E0 AI desk review</div></div>
+    <div class="fact"><div class="k">Killed / failed by rule</div><div class="v">1</div><div class="s">Features, checks or datasets dropped openly</div></div>
+    <div class="fact"><div class="k">Check &amp; horizon status</div><div class="v" style="color:var(--off)">0 err · 0 warn</div><div class="s">Last verdict: 2026-10-01 (9d ago)</div></div>
+  </div>
+  <div class="ladder-box">
+    <div><svg viewBox="0 0 680 190" role="img" aria-label="Evidence progression across verdicts" style="width:100%;max-width:680px;height:auto;display:block">
+<line x1="52" y1="154.0" x2="644" y2="154.0" stroke="var(--rule)" stroke-width="1" />
+<text x="42" y="158.0" text-anchor="end" fill="var(--micro)" font-family="var(--f-mono)" font-size="11">E0</text>
+<line x1="52" y1="127.6" x2="644" y2="127.6" stroke="var(--rule)" stroke-width="1" />
+<text x="42" y="131.6" text-anchor="end" fill="var(--micro)" font-family="var(--f-mono)" font-size="11">E1</text>
+<line x1="52" y1="101.2" x2="644" y2="101.2" stroke="var(--rule)" stroke-width="1" />
+<text x="42" y="105.2" text-anchor="end" fill="var(--micro)" font-family="var(--f-mono)" font-size="11">E2</text>
+<line x1="52" y1="74.8" x2="644" y2="74.8" stroke="var(--amp)" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="42" y="78.8" text-anchor="end" fill="var(--amp)" font-family="var(--f-mono)" font-size="11">E3</text>
+<text x="644" y="69.8" text-anchor="end" fill="var(--amp)" font-family="var(--f-mono)" font-size="10">causal floor (E3)</text>
+<line x1="52" y1="48.4" x2="644" y2="48.4" stroke="var(--rule)" stroke-width="1" />
+<text x="42" y="52.4" text-anchor="end" fill="var(--micro)" font-family="var(--f-mono)" font-size="11">E4</text>
+<line x1="52" y1="22.0" x2="644" y2="22.0" stroke="var(--rule)" stroke-width="1" />
+<text x="42" y="26.0" text-anchor="end" fill="var(--micro)" font-family="var(--f-mono)" font-size="11">E5</text>
+<polyline fill="none" stroke="var(--off)" stroke-width="2.2" points="52.0,127.6 644.0,101.2"/>
+<circle cx="52.0" cy="127.6" r="4.5" fill="var(--off)" stroke="var(--bg)" stroke-width="1.5"/>
+<text x="52.0" y="180" text-anchor="middle" fill="var(--fg-dim)" font-family="var(--f-mono)" font-size="11">2026-09-01</text>
+<text x="52.0" y="118.6" text-anchor="middle" fill="var(--off)" font-family="var(--f-mono)" font-size="10.5" font-weight="600">E1</text>
+<circle cx="644.0" cy="101.2" r="4.5" fill="var(--off)" stroke="var(--bg)" stroke-width="1.5"/>
+<text x="644.0" y="180" text-anchor="middle" fill="var(--fg-dim)" font-family="var(--f-mono)" font-size="11">2026-10-01</text>
+<text x="644.0" y="92.2" text-anchor="middle" fill="var(--off)" font-family="var(--f-mono)" font-size="10.5" font-weight="600">E2</text>
+</svg></div>
+    <div style="font-size:13px;color:var(--fg-dim);line-height:1.6"><strong style="color:var(--fg)">Evidence ladder &amp; confidence ceiling</strong><br><span class='mono'><strong>E0</strong></span> Opinion, desk research, or AI review · <span class='mono'><strong>E1</strong></span> Synthetic benchmark with assumed Zipfian skew · <span class='mono'><strong>E2</strong></span> Replay on production SQL traces from public/anonymized workloads · <span class='mono'><strong>E3</strong></span> Shadow-mode or switchback pilot on live database traffic · <span class='mono'><strong>E4</strong></span> Production holdout at a design partner · <span class='mono'><strong>E5</strong></span> Paying customer, renewed</div>
+  </div>
+  <h2>1. Recon &amp; horizon since latest verdict (2026-10-01 → 2026-10-10)</h2>
+  <ul><li class="dim">No lints, new commits, or overdue dates.</li></ul>
+  <h2>2. Verdict trajectory</h2>
+  <div class="table-wrap"><table><thead><tr><th>Track</th><th><span class="mono">2026-09-01</span></th><th><span class="mono">2026-10-01</span></th></tr></thead><tbody><tr><td class='q-lbl'>Technical lever</td><td><span class='pill pill-go'>Go</span> <span class='ev'>E1</span><div class='cell-note'>Predicted 45% fewer primary DB reads on synthetic skew</div></td><td><span class='pill pill-conditions'>Go with conditions</span> <span class='ev'>E2</span><div class='cell-note'>31% read offload on real traces vs B0; ML prefetcher dropped</div></td></tr><tr><td class='q-lbl'>Product</td><td><span class='pill pill-conditions'>Go with conditions</span> <span class='ev'>E0, E1</span><div class='cell-note'>Zero-code SQL wire proxy pitch</div></td><td><span class='pill pill-pivot'>Pivot</span> <span class='ev'>E1, E2</span><div class='cell-note'>Verify &amp; shadow-audit CLI first; inline proxy blocked by trust</div></td></tr><tr><td class='q-lbl'>Services business</td><td><span class='pill pill-conditions'>Go with conditions</span> <span class='ev'>E0</span><div class='cell-note'>Postgres performance audits can fund development</div></td><td><span class='pill pill-go'>Go</span> <span class='ev'>E2</span><div class='cell-note'>2 paid trace assessments booked</div></td></tr><tr><td class='q-lbl'>Venture business</td><td><span class='pill pill-hold'>Not yet</span> <span class='ev'>E0</span><div class='cell-note'>Crowded managed-Postgres space; needs real workload replay</div></td><td><span class='pill pill-stop'>Stop for now</span> <span class='ev'>E2</span><div class='cell-note'>No algorithmic moat over Redis once hotspots are identified</div></td></tr></tbody></table></div>
+  <h2>3. Scorecard evolution (structural vs. feature-dependent)</h2>
+  <div class="table-wrap"><table><thead><tr><th>Dimension</th><th><span class="mono">2026-09-01</span></th><th><span class="mono">2026-10-01</span></th></tr></thead><tbody><tr><td><strong>Impact vs B0</strong><div class='micro mono'>feature-dependent</div></td><td><div class='s-top'><span>Promising</span><span class='ev'>E1</span></div><div class='bar-track'><div class='bar-fill bar-hi' style='width:75%'></div></div><div class='cell-note'>45% lower read load predicted under synthetic Zipfian workload.</div></td><td><div class='s-top'><span>Strong</span><span class='ev'>E2</span></div><div class='bar-track'><div class='bar-fill bar-hi' style='width:100%'></div></div><div class='cell-note'>28–34% primary read reduction predicted on two real multi-tenant traces. · <em>Stronger (E1 -&gt; E2)</em></div></td></tr><tr><td><strong>Impact vs tuned Redis (B1)</strong><div class='micro mono'>feature-dependent</div></td><td><div class='s-top'><span>Unproven</span><span class='ev'>E1</span></div><div class='bar-track'><div class='bar-fill bar-lo' style='width:37%'></div></div><div class='cell-note'>Within 4% of hand-tuned Redis read-aside in synthetic tests.</div></td><td><div class='s-top'><span>Weak</span><span class='ev'>E2</span></div><div class='bar-track'><div class='bar-fill bar-lo' style='width:25%'></div></div><div class='cell-note'>Caching top 15 queries in existing Redis captures ~90% of the same offload. · <em>Weaker</em></div></td></tr><tr><td><strong>Productability</strong><div class='micro mono'>feature-dependent</div></td><td><div class='s-top'><span>Unproven</span><span class='ev'>E0</span></div><div class='bar-track'><div class='bar-fill bar-lo' style='width:37%'></div></div><div class='cell-note'>Wire-protocol parser handles simple SELECTs only; prepared statements unbuilt.</div></td><td><div class='s-top'><span>Promising</span><span class='ev'>E2</span></div><div class='bar-track'><div class='bar-fill bar-hi' style='width:75%'></div></div><div class='cell-note'>Offline log analyzer needs zero inline privileges; proxy deferred. · <em>Better after pivot</em></div></td></tr><tr><td><strong>Market</strong><div class='micro mono'>structural</div></td><td><div class='s-top'><span>Promising</span><span class='ev'>E0</span></div><div class='bar-track'><div class='bar-fill bar-hi' style='width:75%'></div></div><div class='cell-note'>Managed RDS/CloudSQL bills scale with read replicas.</div></td><td><div class='s-top'><span>Promising</span><span class='ev'>E1</span></div><div class='bar-track'><div class='bar-fill bar-hi' style='width:75%'></div></div><div class='cell-note'>Teams pay for diagnosis and verification, reluctant to install inline proxy. · <em>Narrower</em></div></td></tr><tr><td><strong>Advantage</strong><div class='micro mono'>mixed</div></td><td><div class='s-top'><span>Unproven</span><span class='ev'>E0</span></div><div class='bar-track'><div class='bar-fill bar-lo' style='width:37%'></div></div><div class='cell-note'>Automatic WAL-based invalidation is the proposed wedge, not yet tested.</div></td><td><div class='s-top'><span>Thin, intact</span><span class='ev'>E2</span></div><div class='bar-track'><div class='bar-fill bar-mid' style='width:55%'></div></div><div class='cell-note'>Wedge is exact WAL-aware staleness accounting, not raw cache throughput. · <em>Shifted</em></div></td></tr></tbody></table></div>
+  <h2>4. Active risks &amp; kill criteria</h2>
+  <div class="table-wrap"><table><thead><tr><th>Risk</th><th>Kill criterion</th><th>Horizon (as of 2026-10-10)</th></tr></thead><tbody><tr><td><strong>Teams fix top queries once and churn</strong></td><td>Zero repeat or monitoring engagements from first 3 assessment clients</td><td><span class='ev'>kill 2027-01-31 (113d)</span></td></tr><tr><td><strong>Shadow-mode replay misses parameter-dependent plans</strong></td><td>Predicted offload differs from first live E3 pilot by &gt;25%</td><td><span class='ev'>kill 2026-12-15 (66d)</span></td></tr></tbody></table></div>
+  <h2>5. Killed features &amp; negative results</h2>
+  <div class="table-wrap"><table><thead><tr><th>Verdict</th><th>Feature / check / dataset</th><th>Outcome</th><th>Rule &amp; evidence</th></tr></thead><tbody><tr><td class='mono'>2026-10-01</td><td><strong>ML sequence query-prefetcher</strong></td><td><span class='pill pill-stop'>dropped</span> <span class='ev'>E2</span></td><td>+0.6% hit-rate gain over LRU on two production traces, below the pre-stated 5% threshold.</td></tr></tbody></table></div>
+  <h2>6. Run inspector</h2>
+  <div class="tabs"><button type='button' class='tab-btn active' data-tab='panel-2026-10-01' onclick='selectRun("2026-10-01")'>2026-10-01</button><button type='button' class='tab-btn ' data-tab='panel-2026-09-01' onclick='selectRun("2026-09-01")'>2026-09-01</button></div>
+  <div id='panel-2026-10-01' class='tab-panel active'><p class='preamble'>Second verdict after replaying two anonymized SaaS SQL traces (E2) and holding 6 operator interviews.</p><div class='two-col'><div><h3>Disconfirming changes</h3><ul><li>ML query-prefetcher dropped under pre-stated rule: added +0.6% hit rate (&lt;5% bar) at 3x memory overhead. <span class='ev'>E2</span></li><li>Inline proxy rejected on trust grounds by 5 of 6 interviewed operators prior to shadow proof. <span class='ev'>E1</span></li><li>Against tuned Redis on the top 15 queries (B1), net DB CPU difference is predicted within 2%. <span class='ev'>E2</span></li></ul></div><div><h3>Confirming changes</h3><ul><li>Row-level WAL invalidation cleared the 20% hit-rate bar on both write-heavy traces (28% and 34%). <span class='ev'>E2</span></li><li>Two operators offered exported pg_stat_statements + WAL logs for a paid diagnostic report. <span class='ev'>E1</span></li></ul></div></div><div class='two-col' style='margin-top:20px'><div><h3>Where we are stronger (E2+ or structural)</h3><ul><li>Exact WAL-invalidated counterfactual replay on real query + write logs (E2). <span class='ev'>E2</span></li><li>Pre-stated 5% rule killed the ML prefetcher before building runtime complexity. <span class='ev'>E2</span> <span class="ev">structural</span></li></ul><p class='cell-note' style='margin-top:8px'><strong>Options (unbuilt / unproven):</strong> Inline wire proxy; Automated Redis snippet generator</p></div><div><h3>Next cheapest tests</h3><ol><li><strong>Run first paid log assessment + measure before/after replica CPU (E2 -&gt; E3)</strong>: Tests whether offline prediction matches live traffic once top queries are cached.</li></ol><h3>Proposed roadmap / plan edits</h3><ul><li><strong>ROADMAP.md:</strong> Move offline trace report ahead of wire-protocol proxy.</li></ul></div></div><h3 style='margin-top:22px'>Competitor matrix (2026-10-01)</h3><div class='table-wrap'><table><thead><tr><th>Competitor</th><th>Does</th><th>Segment</th><th>Core lever</th><th>Measured</th><th>Source &amp; check date</th></tr></thead><tbody><tr><td><strong>Readyset</strong></td><td>Incremental SQL view caching</td><td>MySQL/Postgres</td><td>Dataflow view maintenance</td><td>Vendor benchmarks</td><td>readyset.io/docs · <span class='mono dim'>2026-10-01</span></td></tr><tr><td><strong>PgBouncer + Redis</strong></td><td>Pooling + manual cache-aside</td><td>Any Postgres</td><td>Developer-managed keys</td><td>Industry standard</td><td>pgbouncer.org · <span class='mono dim'>2026-10-01</span></td></tr></tbody></table></div></div><div id='panel-2026-09-01' class='tab-panel '><p class='preamble'>Baseline verdict after initial synthetic Zipfian benchmark (E1).</p><div class='two-col'><div><h3>Disconfirming changes</h3><ul><li class="dim">Baseline entry (none earlier).</li></ul></div><div><h3>Confirming changes</h3><ul><li class="dim">Baseline entry.</li></ul></div></div><div class='two-col' style='margin-top:20px'><div><h3>Where we are stronger (E2+ or structural)</h3><ul><li>No application code edits required compared with manual Redis cache-aside (structural deployment difference). <span class='ev'>E0</span> <span class="ev">structural</span></li></ul><p class='cell-note' style='margin-top:8px'><strong>Options (unbuilt / unproven):</strong> ML query-prefetcher; WAL logical-decoding invalidator; Shadow-mode verifier</p></div><div><h3>Next cheapest tests</h3><ol><li><strong>Replay two public multi-tenant SQL traces (E1 -&gt; E2, 6 hours)</strong>: Compare hit rate and staleness against tuned Redis TTL. <span class="pill pill-go">ran: Ran 2026-09-18: ML prefetcher failed; row-key invalidation held 31% hit rate.</span></li></ol></div></div><h3 style='margin-top:22px'>Competitor matrix (2026-09-01)</h3><div class='table-wrap'><table><thead><tr><th>Competitor</th><th>Does</th><th>Segment</th><th>Core lever</th><th>Measured</th><th>Source &amp; check date</th></tr></thead><tbody><tr><td><strong>Readyset</strong></td><td>Incremental SQL view caching</td><td>MySQL/Postgres</td><td>Dataflow view maintenance</td><td>Vendor benchmarks</td><td>readyset.io/docs · <span class='mono dim'>2026-09-01</span></td></tr><tr><td><strong>PgBouncer + Redis</strong></td><td>Pooling + manual cache-aside</td><td>Any Postgres</td><td>Developer-managed keys</td><td>Industry standard</td><td>pgbouncer.org · <span class='mono dim'>2026-09-01</span></td></tr></tbody></table></div></div>
+</div>
+<script>
+function selectRun(id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === 'panel-' + id));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + id));
+}
+</script>
+</body>
+</html>

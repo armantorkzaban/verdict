@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BUNDLED_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+WORKSPACE_CANDIDATE="$(cd "${SCRIPT_DIR}/../../../.." 2>/dev/null && pwd || true)"
+
+if [[ -d "${BUNDLED_ROOT}/verdict" && -f "${BUNDLED_ROOT}/verdict/cli.py" ]]; then
+  TOOL_ROOT="${BUNDLED_ROOT}"
+elif [[ -n "${VERDICT_ROOT:-}" && -d "${VERDICT_ROOT}/verdict" ]]; then
+  TOOL_ROOT="${VERDICT_ROOT}"
+elif [[ -n "${VERDICT_TOOL_ROOT:-}" && -d "${VERDICT_TOOL_ROOT}/verdict" ]]; then
+  TOOL_ROOT="${VERDICT_TOOL_ROOT}"
+elif command -v verdict >/dev/null 2>&1; then
+  exec verdict "$@"
+elif [[ -n "${WORKSPACE_CANDIDATE}" && -d "${WORKSPACE_CANDIDATE}/private/verdict/verdict" ]]; then
+  TOOL_ROOT="${WORKSPACE_CANDIDATE}/private/verdict"
+elif [[ -d "${PWD}/private/verdict/verdict" ]]; then
+  TOOL_ROOT="${PWD}/private/verdict"
+else
+  echo "verdict launcher: install via 'uv tool install .' or set VERDICT_ROOT to the verdict directory." >&2
+  exit 1
+fi
+
+exec python3 -I -B -c 'import sys; sys.path.insert(0, sys.argv.pop(1)); from verdict.cli import main; raise SystemExit(main())' "${TOOL_ROOT}" "$@"

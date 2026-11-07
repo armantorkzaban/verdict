@@ -1,0 +1,47 @@
+{
+  "project": "CacheLine (Demo)",
+  "summary": "Adaptive read-through query cache for multi-tenant Postgres fleets, evaluated against PgBouncer and tuned Redis.",
+  "workspace_root": ".",
+  "verdicts_dir": ".",
+  "ledger_file": "ledger.jsonl",
+  "evidence_ladder": [
+    { "id": "E0", "rank": 0, "description": "Opinion, desk research, or AI review" },
+    { "id": "E1", "rank": 1, "description": "Synthetic benchmark with assumed Zipfian skew" },
+    { "id": "E2", "rank": 2, "description": "Replay on production SQL traces from public/anonymized workloads" },
+    { "id": "E3", "rank": 3, "description": "Shadow-mode or switchback pilot on live database traffic" },
+    { "id": "E4", "rank": 4, "description": "Production holdout at a design partner" },
+    { "id": "E5", "rank": 5, "description": "Paying customer, renewed" }
+  ],
+  "rules": {
+    "causal_floor": "E3",
+    "strength_floor": "E2",
+    "max_source_age_days": 30,
+    "due_soon_days": 14,
+    "forbidden_causal_verbs": ["saves", "saved", "reduces", "reduced", "cuts", "delivers", "improves"],
+    "allowed_causal_phrases": ["saves nothing", "would have reduced", "measured reduction"]
+  },
+  "baselines": [
+    { "id": "B0", "label": "Stock Postgres + PgBouncer", "description": "Connection pooling only, no query cache" },
+    { "id": "B1", "label": "Tuned Redis + application read-aside", "description": "Standard open-source TTL + invalidation setup" }
+  ],
+  "questions": [
+    { "id": "technical_lever", "label": "Technical lever" },
+    { "id": "product", "label": "Product" },
+    { "id": "services_business", "label": "Services business" },
+    { "id": "venture_business", "label": "Venture business" }
+  ],
+  "dimensions": [
+    { "id": "impact_vs_b0", "label": "Impact vs B0", "kind": "feature_dependent" },
+    { "id": "impact_vs_b1", "label": "Impact vs tuned Redis (B1)", "kind": "feature_dependent" },
+    { "id": "productability", "label": "Productability", "kind": "feature_dependent" },
+    { "id": "market", "label": "Market", "kind": "structural" },
+    { "id": "advantage", "label": "Advantage", "kind": "mixed" }
+  ],
+  "watched_paths": {
+    "results": [],
+    "decisions": [],
+    "reviews": "",
+    "consistency_targets": []
+  }
+}
+

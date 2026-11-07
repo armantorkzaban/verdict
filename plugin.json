@@ -1,0 +1,5 @@
+{
+  "name": "verdict",
+  "version": "0.2.0",
+  "description": "Evidence-graded product & research verdict ledger, deterministic epistemic checker, campus-network academic DB search (ScienceDirect, IEEE, ACM, Springer, arXiv), and offline HTML trajectory report."
+}
